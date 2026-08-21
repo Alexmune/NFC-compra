@@ -144,52 +144,54 @@ function renderList(items) {
     const listItem = document.createElement("li");
     listItem.className = "shopping-item";
 
-    // 1. Bloqueamos el ancho máximo de la fila entera
-    listItem.style.maxWidth = "100%";
-    listItem.style.width = "100%";
-    listItem.style.boxSizing = "border-box";
-
     const label = document.createElement("div");
     label.className = "shopping-item-label";
     label.textContent = item.name;
-
-    // 2. La magia de los tres puntos A PRUEBA DE BALAS
-    label.style.whiteSpace = "nowrap";
-    label.style.overflow = "hidden";
-    label.style.textOverflow = "ellipsis";
-    label.style.minWidth = "0"; 
     
-    // 3. El límite matemático: El texto ocupará toda la pantalla menos 190 píxeles (que es lo que ocupan los botones de +, - y Eliminar)
-    label.style.maxWidth = "calc(100vw - 190px)";
-    label.style.display = "block";
-    label.style.paddingRight = "10px";
+    // Le decimos que use todo el espacio posible y que si de verdad no cabe, baje a otra línea suavemente
+    label.style.flex = "1";
+    label.style.paddingRight = "8px";
+    label.style.wordBreak = "break-word";
+    label.style.whiteSpace = "normal";
 
     const actions = document.createElement("div");
     actions.className = "shopping-item-actions";
-    actions.style.flexShrink = "0"; // Evita que los botones se aplasten
+    actions.style.gap = "4px"; // Juntamos un poquito más los botones entre sí
 
     const decreaseButton = document.createElement("button");
     decreaseButton.className = "item-stepper";
     decreaseButton.type = "button";
     decreaseButton.textContent = "−";
+    // Hacemos el botón de restar más pequeño
+    decreaseButton.style.padding = "4px 8px";
+    decreaseButton.style.fontSize = "14px";
     decreaseButton.addEventListener("click", () => handleDecreaseItem(item.ids[item.ids.length - 1]));
 
     const increaseButton = document.createElement("button");
     increaseButton.className = "item-stepper item-stepper-add";
     increaseButton.type = "button";
     increaseButton.textContent = "+";
+    // Hacemos el botón de sumar más pequeño
+    increaseButton.style.padding = "4px 8px";
+    increaseButton.style.fontSize = "14px";
     increaseButton.addEventListener("click", () => addItem(item.name));
 
     const quantityBadge = document.createElement("span");
     quantityBadge.className = "item-quantity";
     quantityBadge.textContent = item.quantity;
+    // Hacemos el número un pelín más pequeño
+    quantityBadge.style.fontSize = "14px";
+    quantityBadge.style.margin = "0 4px";
 
     actions.append(decreaseButton, quantityBadge, increaseButton);
 
     const deleteButton = document.createElement("button");
     deleteButton.className = "item-delete";
     deleteButton.type = "button";
-    deleteButton.textContent = "Eliminar";
+    deleteButton.textContent = "X"; // TRUCO: Cambia "Eliminar" por "X" aquí si quieres ahorrar aún más espacio
+    // Hacemos el botón de eliminar bastante más pequeño
+    deleteButton.style.padding = "4px 8px";
+    deleteButton.style.fontSize = "12px"; 
     deleteButton.addEventListener("click", () => handleDeleteItem(item.ids));
 
     actions.append(deleteButton);
