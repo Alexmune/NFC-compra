@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://gqhprdaattnetouyqpbm.supabase.co";
+const SUPABASE_URL = "https://auqcbkgmgjoxnkmllifb.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_s1xHQR2SgKq5Y14kU9Rs5A_Jvs0PAph";
+  "sb_publishable_f5bo78AX8Tx6KLeU2na9YA_VDYNx0eT";
 const TABLE_NAME = "shopping_list_items";
 const COMMON_ITEMS = [
   { name: "Queso Philadelphia", emoji: "🧀", color: "#f8efe2" },
