@@ -1,27 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://auqcbkgmgjoxnkmllifb.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_f5bo78AX8Tx6KLeU2na9YA_VDYNx0eT";
+const SUPABASE_URL = "https://gqhprdaattnetouyqpbm.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_s1xHQR2SgKq5Y14kU9Rs5A_Jvs0PAph";
 const TABLE_NAME = "shopping_list_items";
-const COMMON_ITEMS = [
-  { name: "Queso Philadelphia", emoji: "🧀", color: "#f8efe2" },
-  { name: "Tomate", emoji: "🍅", color: "#fde7e2" },
-  { name: "Aguacate", emoji: "🥑", color: "#ebf5df" },
-  { name: "Leche", emoji: "🥛", color: "#eef6fb" },
-  { name: "Pan", emoji: "🍞", color: "#f9ead7" },
-  { name: "Huevos", emoji: "🥚", color: "#f9f3df" },
-  { name: "Pechuga de pollo", emoji: "🍗", color: "#f8e8dd" },
-  { name: "Pasta", emoji: "🍝", color: "#f9edcf" },
-  { name: "Arroz", emoji: "🍚", color: "#f5f1e8" },
-  { name: "Atun", emoji: "🐟", color: "#e4f0f7" },
-  { name: "Yogures", emoji: "🥣", color: "#f3edf8" },
-  { name: "Platano", emoji: "🍌", color: "#fbf2bf" },
-  { name: "Cafe", emoji: "☕", color: "#efe2d8" },
-  { name: "Aceite de oliva", emoji: "🫒", color: "#eef3d8" },
-  { name: "Papel higienico", emoji: "🧻", color: "#f2f2ef" },
-  { name: "Agua", emoji: "💧", color: "#e3f5f8" },
-];
+const QUICK_PICKS_TABLE = "shopping_quick_picks";
+
+// Ahora la lista empieza vacía y se llena desde Supabase
+let commonItems = []; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
@@ -36,14 +21,55 @@ const elements = {
 };
 
 const nextWeekStart = getNextWeekStart();
-
 elements.weekLabel.textContent = formatWeekLabel(nextWeekStart);
 
 elements.form.addEventListener("submit", handleAddItem);
 elements.clearButton.addEventListener("click", handleClearWeek);
 
-renderQuickPicks();
+// Iniciar la carga de datos
+loadQuickPicks();
 loadItems();
+
+// --- NUEVAS FUNCIONES PARA FAVORITOS ---
+
+async function loadQuickPicks() {
+  const { data, error } = await supabase
+    .from(QUICK_PICKS_TABLE)
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (!error) {
+    commonItems = data ?? [];
+    renderQuickPicks();
+  }
+}
+
+async function handleAddQuickPick() {
+  const name = prompt("Nombre del nuevo producto favorito:");
+  if (!name) return;
+  
+  let emoji = prompt(`Emoji para ${name} (ej. 🛒, 🍺, 🥦):`, "🛒");
+  if (!emoji) emoji = "🛒";
+  
+  // Generar un color pastel aleatorio para el fondo
+  const hue = Math.floor(Math.random() * 360);
+  const color = `hsl(${hue}, 70%, 90%)`;
+  
+  const { error } = await supabase.from(QUICK_PICKS_TABLE).insert({
+    name: name.trim(),
+    emoji: emoji.trim(),
+    color: color
+  });
+  
+  if (!error) await loadQuickPicks();
+}
+
+async function deleteQuickPick(id) {
+   const { error } = await supabase.from(QUICK_PICKS_TABLE).delete().eq("id", id);
+   if (!error) await loadQuickPicks();
+}
+
+// --- FUNCIONES ORIGINALES MODIFICADAS ---
 
 async function loadItems() {
   const { data, error } = await supabase
@@ -69,10 +95,7 @@ async function handleAddItem(event) {
 }
 
 async function addItem(name) {
-  if (!name) {
-    return;
-  }
-
+  if (!name) return;
   setControlsDisabled(true);
 
   const { error } = await supabase.from(TABLE_NAME).insert({
@@ -80,63 +103,33 @@ async function addItem(name) {
     week_start: nextWeekStart,
   });
 
-  if (error) {
-    setControlsDisabled(false);
-    renderError(error);
-    return;
-  }
-
+  if (error) renderError(error);
   setControlsDisabled(false);
   await loadItems();
 }
 
 async function handleDeleteItem(id) {
   const ids = Array.isArray(id) ? id : [id];
-
   const { error } = await supabase.from(TABLE_NAME).delete().in("id", ids);
-
-  if (error) {
-    renderError(error);
-    return;
-  }
-
+  if (error) renderError(error);
   await loadItems();
 }
 
 async function handleDecreaseItem(id) {
   const { error } = await supabase.from(TABLE_NAME).delete().eq("id", id);
-
-  if (error) {
-    renderError(error);
-    return;
-  }
-
+  if (error) renderError(error);
   await loadItems();
 }
 
 async function handleClearWeek() {
-  const confirmed = window.confirm(
-    "Esto vaciará toda la lista de la compra de la semana que viene."
-  );
-
-  if (!confirmed) {
-    return;
-  }
+  const confirmed = window.confirm("Esto vaciará toda la lista de la compra de la semana que viene.");
+  if (!confirmed) return;
 
   elements.clearButton.disabled = true;
-
-  const { error } = await supabase
-    .from(TABLE_NAME)
-    .delete()
-    .eq("week_start", nextWeekStart);
-
+  const { error } = await supabase.from(TABLE_NAME).delete().eq("week_start", nextWeekStart);
   elements.clearButton.disabled = false;
 
-  if (error) {
-    renderError(error);
-    return;
-  }
-
+  if (error) renderError(error);
   await loadItems();
 }
 
@@ -167,29 +160,18 @@ function renderList(items) {
     const decreaseButton = document.createElement("button");
     decreaseButton.className = "item-stepper";
     decreaseButton.type = "button";
-    decreaseButton.setAttribute(
-      "aria-label",
-      `Quitar una unidad de ${item.name}`
-    );
     decreaseButton.textContent = "−";
-    decreaseButton.addEventListener("click", () =>
-      handleDecreaseItem(item.ids[item.ids.length - 1])
-    );
+    decreaseButton.addEventListener("click", () => handleDecreaseItem(item.ids[item.ids.length - 1]));
 
     const increaseButton = document.createElement("button");
     increaseButton.className = "item-stepper item-stepper-add";
     increaseButton.type = "button";
-    increaseButton.setAttribute(
-      "aria-label",
-      `Añadir una unidad de ${item.name}`
-    );
     increaseButton.textContent = "+";
     increaseButton.addEventListener("click", () => addItem(item.name));
 
     const quantityBadge = document.createElement("span");
     quantityBadge.className = "item-quantity";
     quantityBadge.textContent = item.quantity;
-    quantityBadge.setAttribute("aria-label", `Cantidad: ${item.quantity}`);
 
     actions.append(decreaseButton, quantityBadge, increaseButton);
 
@@ -207,8 +189,19 @@ function renderList(items) {
 
 function renderQuickPicks() {
   elements.quickPicks.innerHTML = "";
+  
+  // Pequeño texto de ayuda visual
+  if(!document.getElementById('quick-picks-help')) {
+    const helpText = document.createElement("p");
+    helpText.id = "quick-picks-help";
+    helpText.style.fontSize = "0.75rem";
+    helpText.style.color = "#666";
+    helpText.style.margin = "0 0 10px 0";
+    helpText.textContent = "💡 Mantén pulsado un favorito para borrarlo.";
+    elements.quickPicks.parentNode.insertBefore(helpText, elements.quickPicks);
+  }
 
-  for (const item of COMMON_ITEMS) {
+  for (const item of commonItems) {
     const button = document.createElement("button");
     button.className = "quick-pick";
     button.type = "button";
@@ -224,13 +217,43 @@ function renderQuickPicks() {
 
     const addBadge = document.createElement("span");
     addBadge.className = "quick-pick-add";
-    addBadge.setAttribute("aria-hidden", "true");
     addBadge.textContent = "+";
 
     button.append(image, name, addBadge);
+    
+    // Al hacer clic normal, añade a la compra
     button.addEventListener("click", () => addItem(item.name));
+    
+    // Al mantener pulsado (contextmenu), borra el favorito
+    button.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      if(confirm(`¿Quieres borrar "${item.name}" de tus favoritos rápidos?`)) {
+         await deleteQuickPick(item.id);
+      }
+    });
+    
     elements.quickPicks.append(button);
   }
+  
+  // Crear el botón extra para añadir nuevos favoritos
+  const addNewBtn = document.createElement("button");
+  addNewBtn.className = "quick-pick";
+  addNewBtn.style.border = "2px dashed #ccc";
+  addNewBtn.style.background = "transparent";
+  
+  const plusIcon = document.createElement("span");
+  plusIcon.textContent = "➕";
+  plusIcon.style.fontSize = "24px";
+  plusIcon.style.marginBottom = "5px";
+  
+  const newText = document.createElement("span");
+  newText.className = "quick-pick-name";
+  newText.textContent = "Nuevo";
+  
+  addNewBtn.append(plusIcon, newText);
+  addNewBtn.addEventListener("click", handleAddQuickPick);
+  
+  elements.quickPicks.append(addNewBtn);
 }
 
 function setControlsDisabled(disabled) {
@@ -247,9 +270,7 @@ function setStatus(message) {
 
 function renderError(error) {
   console.error(error);
-  setStatus(
-    "No se pudo conectar con Supabase. Revisa la tabla y las políticas del proyecto."
-  );
+  setStatus("No se pudo conectar con Supabase. Revisa la tabla y las políticas del proyecto.");
 }
 
 function getNextWeekStart() {
@@ -288,7 +309,6 @@ function createItemImage(item) {
       <text x="48" y="58" text-anchor="middle" font-size="40">${item.emoji}</text>
     </svg>
   `;
-
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -299,11 +319,7 @@ function groupItems(items) {
     const key = normalizeItemName(item.name);
 
     if (!grouped.has(key)) {
-      grouped.set(key, {
-        name: item.name,
-        ids: [item.id],
-        quantity: 1,
-      });
+      grouped.set(key, { name: item.name, ids: [item.id], quantity: 1 });
       continue;
     }
 
@@ -311,7 +327,6 @@ function groupItems(items) {
     existing.ids.push(item.id);
     existing.quantity += 1;
   }
-
   return Array.from(grouped.values());
 }
 
@@ -321,6 +336,6 @@ function normalizeItemName(name) {
 
 function getItemEmoji(name) {
   const key = normalizeItemName(name);
-  const found = COMMON_ITEMS.find((item) => normalizeItemName(item.name) === key);
+  const found = commonItems.find((item) => normalizeItemName(item.name) === key);
   return found?.emoji ?? "🛒";
 }
