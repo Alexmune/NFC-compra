@@ -146,8 +146,15 @@ function renderList(items) {
 
     const label = document.createElement("div");
     label.className = "shopping-item-label";
-    // Solo texto simple, sin emojis
     label.textContent = item.name;
+
+    // --- AQUÍ ESTÁ LA MAGIA DE LOS TRES PUNTITOS ---
+    label.style.whiteSpace = "nowrap";
+    label.style.overflow = "hidden";
+    label.style.textOverflow = "ellipsis";
+    label.style.flex = "1"; 
+    label.style.minWidth = "0"; 
+    label.style.paddingRight = "10px";
 
     const actions = document.createElement("div");
     actions.className = "shopping-item-actions";
