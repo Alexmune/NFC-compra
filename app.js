@@ -45,13 +45,14 @@ async function loadQuickPicks() {
 }
 
 async function handleAddQuickPick() {
-  const name = prompt("Nombre del nuevo producto favorito:");
+  // Ahora usamos customPrompt
+  const name = await customPrompt("Nombre del nuevo producto:");
   if (!name) return;
   
   const { error } = await supabase.from(QUICK_PICKS_TABLE).insert({
     name: name.trim(),
-    emoji: "", // Lo dejamos vacío
-    color: "#d4edda" // Verde clarito fijo
+    emoji: "", 
+    color: "#d4edda" 
   });
   
   if (!error) await loadQuickPicks();
@@ -114,7 +115,8 @@ async function handleDecreaseItem(id) {
 }
 
 async function handleClearWeek() {
-  const confirmed = window.confirm("Esto vaciará toda la lista de la compra de la semana que viene.");
+  // Ahora usamos customConfirm
+  const confirmed = await customConfirm("¿Seguro que quieres vaciar toda la lista de la compra?");
   if (!confirmed) return;
 
   elements.clearButton.disabled = true;
@@ -231,7 +233,9 @@ function renderQuickPicks() {
     // Al mantener pulsado (contextmenu), borra el favorito
     button.addEventListener("contextmenu", async (e) => {
       e.preventDefault();
-      if(confirm(`¿Quieres borrar "${item.name}" de tus favoritos rápidos?`)) {
+      // Ahora usamos customConfirm
+      const confirmed = await customConfirm(`¿Quieres borrar "${item.name}" de tus favoritos rápidos?`);
+      if(confirmed) {
          await deleteQuickPick(item.id);
       }
     });
@@ -343,4 +347,104 @@ function getItemEmoji(name) {
   const key = normalizeItemName(name);
   const found = commonItems.find((item) => normalizeItemName(item.name) === key);
   return found?.emoji ?? "🛒";
+}
+
+// --- NUEVAS VENTANAS PERSONALIZADAS ---
+
+function customConfirm(message) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.style.padding = "20px";
+    dialog.style.border = "none";
+    dialog.style.borderRadius = "12px";
+    dialog.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+    dialog.style.textAlign = "center";
+    dialog.style.maxWidth = "80%";
+    
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.marginBottom = "20px";
+    text.style.fontSize = "16px";
+    
+    const btnContainer = document.createElement("div");
+    btnContainer.style.display = "flex";
+    btnContainer.style.justifyContent = "center";
+    btnContainer.style.gap = "10px";
+    
+    const btnCancel = document.createElement("button");
+    btnCancel.textContent = "Cancelar";
+    btnCancel.style.padding = "10px 20px";
+    btnCancel.style.border = "none";
+    btnCancel.style.borderRadius = "8px";
+    btnCancel.style.backgroundColor = "#e0e0e0";
+    btnCancel.onclick = () => { resolve(false); dialog.remove(); };
+    
+    const btnOk = document.createElement("button");
+    btnOk.textContent = "Confirmar";
+    btnOk.style.padding = "10px 20px";
+    btnOk.style.border = "none";
+    btnOk.style.borderRadius = "8px";
+    btnOk.style.backgroundColor = "#dc3545"; // Rojo para acciones de borrar
+    btnOk.style.color = "white";
+    btnOk.onclick = () => { resolve(true); dialog.remove(); };
+    
+    btnContainer.append(btnCancel, btnOk);
+    dialog.append(text, btnContainer);
+    document.body.append(dialog);
+    dialog.showModal();
+  });
+}
+
+function customPrompt(message) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.style.padding = "20px";
+    dialog.style.border = "none";
+    dialog.style.borderRadius = "12px";
+    dialog.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+    dialog.style.textAlign = "center";
+    dialog.style.maxWidth = "80%";
+    
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.marginBottom = "15px";
+    text.style.fontSize = "16px";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.style.width = "100%";
+    input.style.padding = "10px";
+    input.style.marginBottom = "20px";
+    input.style.border = "1px solid #ccc";
+    input.style.borderRadius = "8px";
+    input.style.boxSizing = "border-box";
+    
+    const btnContainer = document.createElement("div");
+    btnContainer.style.display = "flex";
+    btnContainer.style.justifyContent = "center";
+    btnContainer.style.gap = "10px";
+    
+    const btnCancel = document.createElement("button");
+    btnCancel.textContent = "Cancelar";
+    btnCancel.style.padding = "10px 20px";
+    btnCancel.style.border = "none";
+    btnCancel.style.borderRadius = "8px";
+    btnCancel.style.backgroundColor = "#e0e0e0";
+    btnCancel.onclick = () => { resolve(null); dialog.remove(); };
+    
+    const btnOk = document.createElement("button");
+    btnOk.textContent = "Guardar";
+    btnOk.style.padding = "10px 20px";
+    btnOk.style.border = "none";
+    btnOk.style.borderRadius = "8px";
+    btnOk.style.backgroundColor = "#28a745"; // Verde
+    btnOk.style.color = "white";
+    btnOk.onclick = () => { resolve(input.value); dialog.remove(); };
+    
+    btnContainer.append(btnCancel, btnOk);
+    dialog.append(text, input, btnContainer);
+    document.body.append(dialog);
+    dialog.showModal();
+    input.focus();
+  });
 }
