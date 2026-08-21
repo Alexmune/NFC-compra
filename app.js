@@ -144,20 +144,29 @@ function renderList(items) {
     const listItem = document.createElement("li");
     listItem.className = "shopping-item";
 
+    // 1. Bloqueamos el ancho máximo de la fila entera
+    listItem.style.maxWidth = "100%";
+    listItem.style.width = "100%";
+    listItem.style.boxSizing = "border-box";
+
     const label = document.createElement("div");
     label.className = "shopping-item-label";
     label.textContent = item.name;
 
-    // --- AQUÍ ESTÁ LA MAGIA DE LOS TRES PUNTITOS ---
+    // 2. La magia de los tres puntos A PRUEBA DE BALAS
     label.style.whiteSpace = "nowrap";
     label.style.overflow = "hidden";
     label.style.textOverflow = "ellipsis";
-    label.style.flex = "1"; 
     label.style.minWidth = "0"; 
+    
+    // 3. El límite matemático: El texto ocupará toda la pantalla menos 190 píxeles (que es lo que ocupan los botones de +, - y Eliminar)
+    label.style.maxWidth = "calc(100vw - 190px)";
+    label.style.display = "block";
     label.style.paddingRight = "10px";
 
     const actions = document.createElement("div");
     actions.className = "shopping-item-actions";
+    actions.style.flexShrink = "0"; // Evita que los botones se aplasten
 
     const decreaseButton = document.createElement("button");
     decreaseButton.className = "item-stepper";
