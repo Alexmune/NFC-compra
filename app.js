@@ -148,7 +148,7 @@ function renderList(items) {
     label.className = "shopping-item-label";
     label.textContent = item.name;
     
-    // Le decimos que use todo el espacio posible y que si de verdad no cabe, baje a otra línea suavemente
+    // El texto ocupará todo el espacio disponible
     label.style.flex = "1";
     label.style.paddingRight = "8px";
     label.style.wordBreak = "break-word";
@@ -156,42 +156,40 @@ function renderList(items) {
 
     const actions = document.createElement("div");
     actions.className = "shopping-item-actions";
-    actions.style.gap = "4px"; // Juntamos un poquito más los botones entre sí
+    actions.style.gap = "4px";
+
+    // --- LA FUERZA BRUTA PARA LOS BOTONES REDONDOS ---
+    // Forzamos el ancho y alto a 28px pase lo que pase
+    const circleStyle = "width: 28px !important; height: 28px !important; min-width: 28px !important; padding: 0 !important; font-size: 16px !important; display: flex !important; align-items: center !important; justify-content: center !important;";
 
     const decreaseButton = document.createElement("button");
     decreaseButton.className = "item-stepper";
     decreaseButton.type = "button";
     decreaseButton.textContent = "−";
-    // Hacemos el botón de restar más pequeño
-    decreaseButton.style.padding = "4px 8px";
-    decreaseButton.style.fontSize = "12px";
+    decreaseButton.style.cssText = circleStyle; // Aplicamos la fuerza bruta
     decreaseButton.addEventListener("click", () => handleDecreaseItem(item.ids[item.ids.length - 1]));
 
     const increaseButton = document.createElement("button");
     increaseButton.className = "item-stepper item-stepper-add";
     increaseButton.type = "button";
     increaseButton.textContent = "+";
-    // Hacemos el botón de sumar más pequeño
-    increaseButton.style.padding = "4px 8px";
-    increaseButton.style.fontSize = "12px";
+    increaseButton.style.cssText = circleStyle; // Aplicamos la fuerza bruta
     increaseButton.addEventListener("click", () => addItem(item.name));
 
     const quantityBadge = document.createElement("span");
     quantityBadge.className = "item-quantity";
     quantityBadge.textContent = item.quantity;
-    // Hacemos el número un pelín más pequeño
-    quantityBadge.style.fontSize = "12px";
-    quantityBadge.style.margin = "0 4px";
+    // Forzamos que el número ocupe menos espacio
+    quantityBadge.style.cssText = "font-size: 14px !important; min-width: 16px !important; text-align: center !important; margin: 0 2px !important;";
 
     actions.append(decreaseButton, quantityBadge, increaseButton);
 
     const deleteButton = document.createElement("button");
     deleteButton.className = "item-delete";
     deleteButton.type = "button";
-    deleteButton.textContent = "X"; // TRUCO: Cambia "Eliminar" por "X" aquí si quieres ahorrar aún más espacio
-    // Hacemos el botón de eliminar bastante más pequeño
-    deleteButton.style.padding = "4px 8px";
-    deleteButton.style.fontSize = "12px"; 
+    deleteButton.textContent = "X"; 
+    // Ajustamos la X para que quede perfecta y pequeña
+    deleteButton.style.cssText = "padding: 6px 12px !important; font-size: 14px !important; font-weight: bold !important; border-radius: 6px !important;";
     deleteButton.addEventListener("click", () => handleDeleteItem(item.ids));
 
     actions.append(deleteButton);
