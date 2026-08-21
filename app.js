@@ -164,7 +164,7 @@ function renderList(items) {
     decreaseButton.textContent = "−";
     // Hacemos el botón de restar más pequeño
     decreaseButton.style.padding = "4px 8px";
-    decreaseButton.style.fontSize = "14px";
+    decreaseButton.style.fontSize = "12px";
     decreaseButton.addEventListener("click", () => handleDecreaseItem(item.ids[item.ids.length - 1]));
 
     const increaseButton = document.createElement("button");
@@ -173,14 +173,14 @@ function renderList(items) {
     increaseButton.textContent = "+";
     // Hacemos el botón de sumar más pequeño
     increaseButton.style.padding = "4px 8px";
-    increaseButton.style.fontSize = "14px";
+    increaseButton.style.fontSize = "12px";
     increaseButton.addEventListener("click", () => addItem(item.name));
 
     const quantityBadge = document.createElement("span");
     quantityBadge.className = "item-quantity";
     quantityBadge.textContent = item.quantity;
     // Hacemos el número un pelín más pequeño
-    quantityBadge.style.fontSize = "14px";
+    quantityBadge.style.fontSize = "12px";
     quantityBadge.style.margin = "0 4px";
 
     actions.append(decreaseButton, quantityBadge, increaseButton);
