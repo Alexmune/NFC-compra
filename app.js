@@ -78,7 +78,6 @@ async function loadItems() {
 
   renderList(data ?? []);
   setStatus("");
-  elements.input.focus();
 }
 
 async function handleAddItem(event) {
