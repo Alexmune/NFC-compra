@@ -48,17 +48,10 @@ async function handleAddQuickPick() {
   const name = prompt("Nombre del nuevo producto favorito:");
   if (!name) return;
   
-  let emoji = prompt(`Emoji para ${name} (ej. 🛒, 🍺, 🥦):`, "🛒");
-  if (!emoji) emoji = "🛒";
-  
-  // Generar un color pastel aleatorio para el fondo
-  const hue = Math.floor(Math.random() * 360);
-  const color = `hsl(${hue}, 70%, 90%)`;
-  
   const { error } = await supabase.from(QUICK_PICKS_TABLE).insert({
     name: name.trim(),
-    emoji: emoji.trim(),
-    color: color
+    emoji: "", // Lo dejamos vacío
+    color: "#d4edda" // Verde clarito fijo
   });
   
   if (!error) await loadQuickPicks();
@@ -152,7 +145,8 @@ function renderList(items) {
 
     const label = document.createElement("div");
     label.className = "shopping-item-label";
-    label.textContent = `${getItemEmoji(item.name)} ${item.name}`;
+    // Solo texto simple, sin emojis
+    label.textContent = item.name;
 
     const actions = document.createElement("div");
     actions.className = "shopping-item-actions";
@@ -205,21 +199,32 @@ function renderQuickPicks() {
     const button = document.createElement("button");
     button.className = "quick-pick";
     button.type = "button";
+    
+    // ESTILOS NUEVOS: Pintamos el botón de verde clarito
+    button.style.backgroundColor = "#d4edda";
+    button.style.border = "none";
+    button.style.padding = "10px 15px";
+    button.style.borderRadius = "8px";
+    button.style.display = "flex";
+    button.style.alignItems = "center";
+    button.style.gap = "8px";
+    button.style.cursor = "pointer";
 
-    const image = document.createElement("img");
-    image.className = "quick-pick-image";
-    image.src = createItemImage(item);
-    image.alt = item.name;
+    // Hemos eliminado las 4 líneas de "const image = ..."
 
     const name = document.createElement("span");
     name.className = "quick-pick-name";
     name.textContent = item.name;
+    name.style.color = "#155724"; // Letra verde oscuro para que se lea bien
+    name.style.fontWeight = "bold";
 
     const addBadge = document.createElement("span");
     addBadge.className = "quick-pick-add";
     addBadge.textContent = "+";
+    addBadge.style.color = "#155724"; // Símbolo + en verde oscuro
 
-    button.append(image, name, addBadge);
+    // Como ya no hay imagen, solo añadimos el nombre y el +
+    button.append(name, addBadge);
     
     // Al hacer clic normal, añade a la compra
     button.addEventListener("click", () => addItem(item.name));
@@ -240,17 +245,18 @@ function renderQuickPicks() {
   addNewBtn.className = "quick-pick";
   addNewBtn.style.border = "2px dashed #ccc";
   addNewBtn.style.background = "transparent";
-  
-  const plusIcon = document.createElement("span");
-  plusIcon.textContent = "➕";
-  plusIcon.style.fontSize = "24px";
-  plusIcon.style.marginBottom = "5px";
+  addNewBtn.style.padding = "10px 15px";
+  addNewBtn.style.borderRadius = "8px";
+  addNewBtn.style.display = "flex";
+  addNewBtn.style.alignItems = "center";
+  addNewBtn.style.gap = "8px";
+  addNewBtn.style.cursor = "pointer";
   
   const newText = document.createElement("span");
   newText.className = "quick-pick-name";
-  newText.textContent = "Nuevo";
+  newText.textContent = "➕ Nuevo";
   
-  addNewBtn.append(plusIcon, newText);
+  addNewBtn.append(newText);
   addNewBtn.addEventListener("click", handleAddQuickPick);
   
   elements.quickPicks.append(addNewBtn);
